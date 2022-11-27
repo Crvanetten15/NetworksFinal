@@ -44,6 +44,7 @@ public class LossyChannel {
 		int randnum = rand.nextInt(10); // range 0-10
 		
 		if(randnum < 3) {return;} // simulate a loss
+		
 		try {
 			DatagramPacket p = new DatagramPacket(payload, payload.length, m_IPAddress, m_remoteport); 
 			//System.out.println("LossyChannel::send: "+new String(p.getData()));
