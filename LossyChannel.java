@@ -6,12 +6,12 @@
 import java.io.*; 
 import java.net.*; 
 import java.util.*;
-
 public class LossyChannel {
     private InetAddress m_IPAddress;
     private DatagramSocket m_socket = null;
     private int m_localport = 0;
     private int m_remoteport = 0;
+	private int DesiredLoss = 3; //TODO : CHECK THE RECIEVER CLASS LOSS
 
     private byte[] m_receiveBuffer = new byte[Packet.MAX_PACKET_SIZE]; 
     private TransportLayer m_transportLayer = null;
@@ -43,8 +43,9 @@ public class LossyChannel {
 		Random rand = new Random();
 		int randnum = rand.nextInt(10); // range 0-10
 		
-		if(randnum < 3) {return;} // simulate a loss
-		
+		// System.out.println(DesiredLoss);
+		if(randnum < DesiredLoss) {return;} // simulate a loss
+
 		try {
 			DatagramPacket p = new DatagramPacket(payload, payload.length, m_IPAddress, m_remoteport); 
 			//System.out.println("LossyChannel::send: "+new String(p.getData()));
@@ -59,6 +60,9 @@ public class LossyChannel {
 	return m_receiveBuffer;
     }
 
+	public void setLoss(int val){
+		DesiredLoss = val;
+	}
     // Thread to read packets arrived from the network and to notify
     // the transport layer
     public class ReadThread extends Thread {
@@ -75,7 +79,8 @@ public class LossyChannel {
 		}
 		
 		byte[] receivedData = p.getData();
-		//System.out.println("Received packet: "+ receivedData[0]);
+		//HERE
+		System.out.println("Received packet: "+ receivedData[0]);
 		
 		if(m_transportLayer != null)
 		    m_transportLayer.onPacketArrival();
