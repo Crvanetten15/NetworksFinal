@@ -31,30 +31,44 @@ public class ParSender extends TransportLayer{
 			return;
 // ---------------------------------------------Task 2------------------------------------------------------------	
 		while(true) {
-			int event;
-            do {
+			
+			// Set the event to 1 to ensure enterance
+			int event = 1;
+            while(0 != event){
+				// Set payload, length, and SEQ # 
 				packet.payload = msgToSend;
 				packet.length = msgToSend.length;
 				packet.seq = nextPacketToSend;
+
                	this.sendToLossyChannel(packet);
                	this.m_wakeup = false;
-               	this.startTimer();
-               	event = this.waitForEvent();
-            } while(0 != event);
+               	// Start time in case of loss
+				this.startTimer();
+               	
+				//Again wait til event returns 0 for a successfule send
+				event = this.waitForEvent();
+            }
 
+			// Retrieved packet from the lossy channel
             packet = this.receiveFromLossyChannel();
+			
+			// Checking if it is a working packet
             if (packet.isValid()) {
-               if (packet.ack == nextPacketToSend) {
-                  this.stopTimer();
-                  msgToSend = this.getMessageToSend();
-                  if (null == msgToSend) {
-                     return;
-                  }
+				// check ack to see if it is the next Packet 
+            	if (packet.ack == nextPacketToSend) {
+                	//if so stop timer as we dont need to send a dup
+					this.stopTimer();
 
-                  nextPacketToSend = this.increment(nextPacketToSend);
-               } else {
-                  System.out.println("...Received duplicated ack");
-               }
+					// retrieve next message to send 
+                	msgToSend = this.getMessageToSend();
+                	if (null == msgToSend) {return;}
+
+					// Increment to next to send the packet
+					nextPacketToSend = this.increment(nextPacketToSend);
+               	} 
+				else {
+					System.out.println("\nALERT: duplicate packet recieved\n");
+				}
             }
 		}
 // ---------------------------------------------Task 2------------------------------------------------------------
